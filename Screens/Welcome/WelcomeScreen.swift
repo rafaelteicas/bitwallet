@@ -12,10 +12,17 @@ struct WelcomeScreen: View {
     
     var body: some View {
         VStack {
-            WalletButton(action: {
-                router.authRoutes.append(.createWallet)
-            }, title: "Create Wallet")
+            WalletButton(title: "Create Wallet") {
+                router.authRoutes.append(.pin(.createWallet()))
+            }
+            
+            WalletButton(title: "Import Wallet", style: .secondary) {
+                router.authRoutes.append(.pin(.importWallet()))
+            }
         }
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.background)
     }
 }
 

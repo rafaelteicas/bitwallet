@@ -8,71 +8,86 @@
 import SwiftUI
 
 struct PinScreen: View {
-    @State private var pin: [String] = []
+    @Environment(Router.self) private var router
+    
+    @State private var enteredPin: String = ""
+    @State private var step: Int = 0
+    @State private var firstPin: String?
+    @State private var error: Bool = false
+    
+    let gridItems = Array(repeating: GridItem(.fixed(100)), count: 3)
+    let pinLength = 6
+    
+    private var isCreatePin: Bool = true
+    private var nextRoute: AuthRoutes?
+    
+    init(isCreatePin: Bool, nextRoute: AuthRoutes?) {
+        self.isCreatePin = isCreatePin
+        self.nextRoute = nextRoute
+    }
     
     var body: some View {
-        VStack(spacing: 120) {
-            HStack(spacing: 20) {
-                ForEach(0..<6, id: \.self) { index in
-                    let pinValue = pin.indices.contains(index) ? pin[index] : ""
-                    
+        VStack(spacing: 50) {
+            HStack {
+                ForEach(0..<pinLength, id: \.self) { index in
                     Circle()
-                        .fill(!pinValue.isEmpty ? .black : .white)
-                        .stroke(Color.gray, lineWidth: 1)
+                        .fill(index < enteredPin.count ? Color.primary : Color.gray)
+                        .frame(width: index < enteredPin.count ? 15 : 12)
                 }
             }
-            .frame(height: 20)
-            
-            VStack {
-                ForEach(0..<3, id: \.self) { row in
-                    HStack {
-                        ForEach(0..<3, id: \.self) { index in
-                            let number = row * 3 + index
-                            Button(action: {
-                                pin.append("\(number + 1)")
-                            }) {
-                                Text("\(number + 1)")
-                                    .font(.system(size: 40))
-                                    .padding(.horizontal, 40)
-                                    .padding(.vertical, 20)
-                            }
+            VStack(spacing: 16) {
+                LazyVGrid(columns: gridItems, spacing: 16) {
+                    ForEach(1...9, id: \.self) { number in
+                        PinButton(number: number) {
+                            handlePinInput(number)
                         }
                     }
                 }
-                HStack {
-                    VStack {}
-                        .frame(width: 40, height: 20)
-                        .padding(.horizontal, 40)
-                        .padding(.vertical, 20)
-                    Button (action: {
-                        pin.append("0")
-                    }) {
-                        Text("0")
-                            .font(.system(size: 40))
-                            .padding(.horizontal, 40)
-                            .padding(.vertical, 20)
-                    }
-                    Button (action: {
-                        pin.removeLast()
-                    }) {
-                        Image(systemName: "delete.left")
-                            .font(.system(size: 20))
-                            .padding(.horizontal, 40)
-                            .padding(.vertical, 20)
+                PinButton(number: 0) {
+                    handlePinInput(0)
+                }
+                
+                if error {
+                    Text("PINs do not match")
+                        .foregroundColor(.red)
+                        .padding()
+                }
+            }
+        }
+        .onChange(of: enteredPin) { _, pin in
+            if isCreatePin && pin.count == pinLength {
+                if step == 0 {
+                    firstPin = pin
+                    enteredPin = ""
+                    step += 1
+                }
+                else if step == 1 {
+                    if pin == firstPin {
+                        guard let nextRoute else { return }
+                        router.authRoutes.append(nextRoute)
+                    } else {
+                        error = true
+                        step = 0
+                        enteredPin = ""
+                        firstPin = nil
                     }
                 }
             }
-            .frame(width: .infinity, height: 200)
-            .onChange(of: pin) { _, newValue in
-                if newValue.count == 6 {
-                    print(newValue)
-                    pin = []
-                }
-            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.appBackground)
+    }
+    
+    private func handlePinInput(_ number: Int) {
+        if enteredPin.count < pinLength {
+            enteredPin.append("\(number)")
         }
     }
 }
 
 #Preview {
-    PinScreen()
+    PinScreen(
+        isCreatePin: true,
+        nextRoute: nil
+    )
 }

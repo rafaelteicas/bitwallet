@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-enum AuthRoutes: Hashable {
-    case importWallet, createWallet
+indirect enum AuthRoutes: Hashable {
+    case pin(Self), importWallet(_ pin: String = ""), createWallet(_ pin: String = "")
 }
 
 struct AuthRoutesStack: View {
@@ -21,10 +21,16 @@ struct AuthRoutesStack: View {
             WelcomeScreen()
             .navigationDestination(for: AuthRoutes.self) { route in
                 switch route {
-                case .createWallet:
-                    Text("Create")
-                case .importWallet:
-                    Text("Import")
+                case .pin(let nextRoute):
+                    PinScreen(
+                        isCreatePin: true,
+                        nextRoute: nextRoute
+                    )
+                case .createWallet(let pin):
+                    CreateWalletScreen()
+                        
+                case .importWallet(let pin):
+                    Text("Import Wallet Screen")
                 }
             }
         }

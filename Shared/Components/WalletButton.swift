@@ -8,8 +8,14 @@
 import SwiftUI
 
 struct WalletButton: View {
-    var action: () -> Void
+    enum ButtonStyle {
+        case primary, secondary
+    }
+    
     var title: String
+    var style: ButtonStyle = .primary
+    
+    var action: () -> Void
     
     var body: some View {
         Button(action: action) {
@@ -18,7 +24,7 @@ struct WalletButton: View {
                 .frame(height: 44)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.primary)
+                        .fill(style == .primary ? Color.primary : Color.secondary)
                 )
                 .foregroundStyle(.white)
         }
@@ -26,8 +32,8 @@ struct WalletButton: View {
 }
 
 #Preview {
-    WalletButton(
-        action: {},
-        title: "Button"
-    )
+    VStack {
+        WalletButton(title: "Button") {}
+        WalletButton(title: "Button", style: .secondary) {}
+    }
 }
